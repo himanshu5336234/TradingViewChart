@@ -1,8 +1,5 @@
-import { dataFeed } from './dataFeed.js';
-import { ChartManager } from './chartManager.js';
 
-// Make dataFeed available globally (required by TradingView)
-window.dataFeed = dataFeed;
+import { ChartManager } from './Service/ChartsService/chartManager.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const chartManager = new ChartManager();
