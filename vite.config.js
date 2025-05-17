@@ -1,40 +1,29 @@
 import { defineConfig } from 'vite';
-// import react from '@vitejs/plugin-react';
-import { visualizer } from 'rollup-plugin-visualizer';
-import {copy} from 'vite-plugin-copy';
+import path from 'path';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
   plugins: [
-    copy({
-      targets: [{ src: '_headers', dest: 'dist' }],
+    viteStaticCopy({
+      targets: [
+        {
+          src: path.resolve(__dirname, 'chart/charting_library.standalone.js'),
+          dest: './js/charting_library',
+        },
+      ],
     }),
-    visualizer({
-      open: true,
-      filename: 'bundle-report.html'
-    })
   ],
   build: {
-      target: 'es2020',
-      minify: 'terser', 
+    target: 'es2015',
+    outDir: 'build',
+    sourcemap: false,
     rollupOptions: {
-      treeshake: true,  
-      // external: ['axios', 'charting_library'], // Externalize these
+      input: './src/index.ts',
       output: {
-        chunkFileNames: '[name]-[hash].js',
-        manualChunks: {
-          // react: ['react', 'react-dom'],
-          vendor: ['axios']
-        }
-      }
+        entryFileNames: 'js/[name].js',
+        chunkFileNames: 'js/[name].js',
+        assetFileNames: '[ext]/[name].[ext]',
+      },
     },
-    chunkSizeWarningLimit: 1000 // KB
   },
-  server: {
-    port: 3000,
-    open: '/', // Opens TradingView chart directly
-    cors: true
-  },
-  // optimizeDeps: {
-  //   // include: ['react', 'react-dom']
-  // }
 });
