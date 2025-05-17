@@ -1,5 +1,3 @@
-// websocket-manager.js
-
 const webSocketWorkerScript = `
 let socket = null;
 let messageQueue = [];
@@ -7,7 +5,6 @@ let isAppInBackground = false;
 let retryCount = 0;
 const maxRetries = 5;
 let url = '';
-let listeners = {};
 
 onmessage = function(e) {
   const { type, payload } = e.data;
@@ -25,17 +22,10 @@ onmessage = function(e) {
     case 'DISCONNECT':
       disconnect();
       break;
-    case 'ADD_LISTENER':
-      addListener(payload);
-      break;
-    case 'REMOVE_LISTENER':
-      removeListener(payload);
-      break;
     default:
       break;
   }
 };
-
 function connect(url) {
   if (!socket || socket.readyState === WebSocket.CLOSED) {
     socket = new WebSocket(url);
@@ -87,8 +77,8 @@ function attemptReconnect() {
 function processMessageQueue() {
   if (messageQueue.length > 0) {
     const message = messageQueue.shift();
-    postMessage({ type: 'WebSocketMessage', payload: message });
-    processMessageQueue();
+      postMessage({ type: 'WebSocketMessage', payload: message });
+      processMessageQueue();
   }
 }
 
@@ -99,12 +89,13 @@ function sendMessage(message) {
 }
 
 function handleAppStateChange(nextAppState) {
+
   if (nextAppState === 'inactive') {
     isAppInBackground = true;
-    messageQueue = [];
-    disconnect();
+    messageQueue=[];
+    disconnect()
   } else if (nextAppState === 'active') {
-    attemptReconnect();
+    attemptReconnect()
     isAppInBackground = false;
     processMessageQueue();
   }

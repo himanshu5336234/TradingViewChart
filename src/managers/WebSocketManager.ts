@@ -5,74 +5,96 @@ type WebSocketMessageType = 'INIT' | 'SEND' | 'APP_STATE_CHANGE' | 'DISCONNECT' 
 
 interface WorkerMessage {
   type: WebSocketMessageType;
-  payload?: any;
+  payload?: unknown;
 }
 
-type ListenerCallback = (payload: any) => void;
+type ListenerCallback = (payload: unknown) => void;
 
 class WebSocketManager {
   private static instance: WebSocketManager | null = null;
   private worker: Worker;
-  private listeners: Map<string, Set<ListenerCallback>> = new Map();
-
-  private constructor() {
+  private listeners: Record<string, ListenerCallback[]> = {};
+  private isConnected: boolean = false;
+  private constructor(url: string) {
     this.worker = new Worker(webSocketWorkerURL);
-    this.worker.onmessage = this.handleWorkerMessage.bind(this);
-
-    // Auto-initialize WebSocket connection with URL from query param
-    const { binanceWsBase } = getBaseURL();
-    this.worker.postMessage({ type: 'INIT', payload: binanceWsBase });
+    this.worker.onmessage = (event: MessageEvent<WorkerMessage>) => {
+      this.handleWorkerMessage(event);
+    };
+    this.worker.postMessage({ type: 'INIT', payload: url });
+    // window.addEventListener('visibilitychange', this.handleVisibilityChange);
   }
 
   static getInstance(): WebSocketManager {
     if (!WebSocketManager.instance) {
-      WebSocketManager.instance = new WebSocketManager();
+      const { binanceWsBase } = getBaseURL();
+      WebSocketManager.instance = new WebSocketManager(binanceWsBase);
     }
     return WebSocketManager.instance;
   }
 
-  send(message: any): void {
-    this.worker.postMessage({ type: 'SEND', payload: message });
+                 send(message: unknown): void {
+    this.worker?.postMessage({ type: 'SEND', payload: message });
+  }
+  reconnect(): void {
+    const { binanceWsBase } = getBaseURL();
+    this.worker?.postMessage({ type: 'INIT', payload: binanceWsBase });
   }
 
-  addEventListener(eventType: string, callback: ListenerCallback): void {
-    debugger
-    if (!this.listeners.has(eventType)) {
-      this.listeners.set(eventType, new Set());
+  public addListener(event: string, listener: ListenerCallback): void {
+    if (!this.listeners[event]) {
+      this.listeners[event] = [];
     }
-    this.listeners.get(eventType)!.add(callback);
+    this.listeners[event].push(listener);
   }
 
-  removeEventListener(eventType: string, callback: ListenerCallback): void {
-    if (this.listeners.has(eventType)) {
-      const callbacks = this.listeners.get(eventType)!;
-      callbacks.delete(callback);
-      if (callbacks.size === 0) {
-        this.listeners.delete(eventType);
+  public removeListener(event: string, listener: ListenerCallback): void {
+    if (this.listeners[event]) {
+      const index = this.listeners[event].indexOf(listener);
+      if (index !== -1) {
+        this.listeners[event].splice(index, 1);
       }
     }
   }
 
-  handleAppStateChange(state: any): void {
-    this.worker.postMessage({ type: 'APP_STATE_CHANGE', payload: state });
-  }
-
-  disconnect(): void {
-    this.worker.postMessage({ type: 'DISCONNECT' });
-  }
-
-  private handleWorkerMessage(event: MessageEvent): void {
-    const { type, payload } = event.data as WorkerMessage;
-    if (this.listeners.has(type)) {
-      const callbacks = this.listeners.get(type)!;
-      callbacks.forEach(callback => callback(payload));
+  private handleWorkerMessage(event: MessageEvent<WorkerMessage>): void {
+    const { type, payload } = event.data;
+  
+    if (type === 'CONNECTED') {
+      this.isConnected = true;
+    } else if (type === 'DISCONNECTED') {
+      this.isConnected = false;
+    }
+  
+    if (this.listeners[type]) {
+      this.listeners[type].forEach(listener => listener(payload));
     }
   }
+  
+  private handleVisibilityChange = (): void => {
+    const nextAppState = document.hidden ? 'inactive' : 'active';
+    console.log(nextAppState, "nextAppState");
+    this.worker?.postMessage({ type: 'APP_STATE_CHANGE', payload: nextAppState });
+  };
 
-  terminate(): void {
+  public handleAppStateChange(state: string): void {
+    this.worker?.postMessage({ type: 'APP_STATE_CHANGE', payload: state });
+  }
+
+  public disconnect(): void {
+    this.worker?.postMessage({ type: 'DISCONNECT' });
+    window.removeEventListener('visibilitychange', this.handleVisibilityChange);
+  }
+
+  public removeAllListeners(): void {
+    this.listeners = {};
+  }
+  public get connectionStatus(): boolean {
+    return this.isConnected;
+  }
+  public terminate(): void {
     this.disconnect();
     this.worker.terminate();
-    this.listeners.clear();
+    this.listeners = {};
     WebSocketManager.instance = null;
   }
 }
