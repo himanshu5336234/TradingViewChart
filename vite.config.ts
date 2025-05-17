@@ -2,10 +2,16 @@ import { defineConfig } from 'vite';
 import path from 'path';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import tsconfigPaths from 'vite-tsconfig-paths';
-
+import { visualizer } from 'rollup-plugin-visualizer';
 export default defineConfig({
   plugins: [
     tsconfigPaths(),
+    visualizer({
+      filename: 'bundle-report.html',
+      open: true, // Automatically opens the report in your browser
+      gzipSize: true,
+      brotliSize: true,
+    }),
     viteStaticCopy({
       targets: [
         {
