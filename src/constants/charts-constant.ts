@@ -1,4 +1,4 @@
-export const TV_INTERVALS = {
+export const TV_INTERVALS:any = {
     '1s': '1s',
     1: "1m",
     3: "3m",
@@ -20,5 +20,3 @@ export const TV_INTERVALS = {
     "1M": "1M"
   };
   
-  export const RECONNECT_DELAY = 5000;
-  export const PING_INTERVAL = 180000;

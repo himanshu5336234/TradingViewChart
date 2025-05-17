@@ -5,11 +5,7 @@ export class SubscriptionManager {
       this.storeLastSub = null;
     }
   
-    generateSubscriptionParam(subscriberUID, intervals) {
-      const id = subscriberUID.split("_#_");
-      localStorage.setItem("user_pc_resolution_chart_x", JSON.stringify({ "resolution": id[2] }));
-      return `${id[0].toLowerCase()}@kline_${intervals[id[2]]}`;
-    }
+ 
   
     addSubscription(subscriberUID, paramStr, callback) {
       this.subscriptionMap.set(paramStr, subscriberUID);
@@ -21,11 +17,5 @@ export class SubscriptionManager {
       delete this.streams[subscriberUID];
     }
   
-    getSubscriptionRequest(paramStr, type = 'SUBSCRIBE') {
-      return {
-        method: type,
-        params: [paramStr],
-        id: Date.now()
-      };
-    }
+
   }

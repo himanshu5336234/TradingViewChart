@@ -1,7 +1,8 @@
-
-import { ChartManager } from './Service/ChartsService/chartManager.js';
+import ChartManager from "@managers/ChartManager";
+import WebSocketManager from "@managers/WebSocketManager";
 
 document.addEventListener('DOMContentLoaded', () => {
-  const chartManager = new ChartManager();
-  chartManager.initChart();
+
+  ChartManager.initChart();
+  WebSocketManager.getInstance();
 });
