@@ -1,5 +1,6 @@
 import axios, { CancelTokenSource } from 'axios';
 import { getBaseURL } from '../ApiService/baseUrl.js';
+import { SearchSymbolResultItem, SearchSymbolsCallback } from '../../../chart/datafeed-api.js'
 import { generateSubscriptionParam, getSubscriptionRequest, helperOnMessage } from '@helpers/chart-helpers.js';
 import WebSocketManager from '@managers/WebSocketManager.js';
 // Make sure to uncomment and fix this import path accordingly
@@ -196,7 +197,23 @@ export const dataFeed = {
             setTimeout(() => onResolveErrorCallback("Symbol Not Found"), 0);
         }
     },
-
+    searchSymbols: (userInput: string, _exchange: string, _symbolType: string, onResult: SearchSymbolsCallback) => {
+        // This function is not implemented in the original code
+        // You can implement it based on your requirements
+        // For example, you can filter the allSymbols array based on userInput
+        // and call onResult with the filtered symbols
+        // Example implementation:
+         const filteredSymbols = allSymbols.filter(symbol => symbol.symbol.includes(userInput));
+        onResult(filteredSymbols.map((symbol:any) => ({
+            description: symbol.symbol,
+            exchange: "Binance",
+            full_name: symbol.symbol,
+            symbol: symbol.symbol,
+            type: "crypto",
+        })) as SearchSymbolResultItem[]);
+        // If you want to return a static result for testing, uncomment the following line:
+    
+    },
     getBars: async (
         symbolInfo: SymbolInfo,
         resolution: string,

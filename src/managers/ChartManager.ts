@@ -1,7 +1,4 @@
-import { ResolutionHelper, UrlHelper, WidgetConfigHelper } from "@helpers/helpers";
-import { eventBus } from "@services/ApiService/eventBus.js";
-
-// Declare types for external TradingView widget objects
+import { ResolutionHelper, UrlHelper, WidgetConfigHelper } from "@helpers/chart-helpers.js";
 declare global {
   interface Window {
     TradingView: any;
@@ -27,15 +24,15 @@ class ChartManager {
    * window messages, and window resize events.
    */
   private initEventListeners(): void {
-    eventBus.subscribe('symbolChange', this.handleSymbolChange.bind(this));
-    eventBus.subscribe('resolutionChange', this.handleResolutionChange.bind(this));
+    // eventBus.subscribe('symbolChange', this.handleSymbolChange.bind(this));
+    // eventBus.subscribe('resolutionChange', this.handleResolutionChange.bind(this));
     // Optionally listen to windowResize event:
     // eventBus.subscribe('windowResize', this.handleWindowResize.bind(this));
 
     // Listen for messages sent to the window (e.g. postMessage)
     window.addEventListener('message', this.handleWindowMessage.bind(this));
     // Publish windowResize event on window resize
-    window.addEventListener('resize', () => eventBus.publish('windowResize'));
+    // window.addEventListener('resize', () => eventBus.publish('windowResize'));
   }
 
   /**
@@ -45,7 +42,7 @@ class ChartManager {
    */
   private handleWindowMessage(event: MessageEvent): void {
     if (event.data && event.data.action === 'updateSymbol') {
-      eventBus.publish('symbolChange', event.data.symbol);
+      // eventBus.publish('symbolChange', event.data.symbol);
     }
   }
 
@@ -85,7 +82,7 @@ class ChartManager {
     this.widget.onChartReady(() => {
       const chart = this.widget!.chart();
       chart.onIntervalChanged().subscribe(null, (interval: string) => {
-        eventBus.publish('resolutionChange', interval);
+        // eventBus.publish('resolutionChange', interval);
       });
     });
   }
