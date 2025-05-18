@@ -33,7 +33,7 @@ function connect(url) {
     socket.onopen = () => {
       retryCount = 0;
       if (!isAppInBackground) {
-        postMessage({ type: 'open' });
+        postMessage({ type: 'CONNECTED' });
       }
     };
 

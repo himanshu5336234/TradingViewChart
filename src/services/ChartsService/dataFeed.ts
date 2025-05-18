@@ -232,14 +232,23 @@ export const dataFeed = {
             const socketManager = WebSocketManager.getInstance();
             const paramStr = (generateSubscriptionParam(subscriberUID));
             const subscriptionObj = getSubscriptionRequest(paramStr);
-            socketManager.send(JSON.stringify(subscriptionObj))
+            if (socketManager.connectionStatus) {
+                socketManager.send(JSON.stringify(subscriptionObj));
+            }
+            else {
+                socketManager.reconnect();
+                const time = setTimeout(() => {
+                    socketManager.send(JSON.stringify(subscriptionObj));
+                }
+                    , 1000);
+                clearTimeout(time);
+            }
 
-
-
-            // Add listener and keep reference for later removal
             socketManager.addListener("WebSocketMessage", (message: any) => {
                 helperOnMessage(message, paramStr, onRealtimeCallback);
             });
+
+            // Add listener and keep reference for later removal
 
         } catch (e) {
             console.error('Subscription error:', e);
@@ -253,6 +262,13 @@ export const dataFeed = {
             const unsubObj = getSubscriptionRequest(paramStr, 'UNSUBSCRIBE');
             if (socketManager.connectionStatus) {
                 socketManager.send(JSON.stringify(unsubObj));
+            } else {
+                socketManager.reconnect();
+                const time = setTimeout(() => {
+                    socketManager.send(JSON.stringify(unsubObj));
+                }
+                    , 1000);
+                clearTimeout(time);
             }
         } catch (e) {
             console.error('Unsubscription error:', e);
